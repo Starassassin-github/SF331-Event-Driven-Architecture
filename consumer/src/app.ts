@@ -16,6 +16,7 @@ try {
           throw error;
         }
 
+        // Broker
         channel.assertQueue("producer_created", { durable: false });
         channel.assertQueue("producer_updated", { durable: false });
         channel.assertQueue("producer_deleted", { durable: false });
@@ -35,6 +36,8 @@ try {
 
         app.use(express.json());
 
+
+        // consumer
         channel.consume(
           "producer_created",
           (msg) => {
