@@ -55,8 +55,18 @@ const producer = async () => {
       // get all data from database producers
       app.get("/api/producers", async (req: Request, res: Response) => {
         const producers = await producerRepository.find();
-        channel1.sendToQueue(queue_get1, Buffer.from(JSON.stringify(producers)));
-        channel2.sendToQueue(queue_get2, Buffer.from(JSON.stringify(producers)));
+        try {
+          channel1.sendToQueue(queue_get1, Buffer.from(JSON.stringify(producers)));
+        } catch (error) {
+          console.log(error);
+          channel2.sendToQueue(queue_get2, Buffer.from(JSON.stringify(producers)));
+          return res.json(producers);
+        }
+        try {
+          channel2.sendToQueue(queue_get2, Buffer.from(JSON.stringify(producers)));
+        } catch (error) {
+          console.log(error);
+        }
         return res.json(producers);
       });
 
@@ -64,8 +74,18 @@ const producer = async () => {
       app.post("/api/producers", async (req: Request, res: Response) => {
         const producers = await producerRepository.create(req.body);
         const result = await producerRepository.save(producers);
-        channel1.sendToQueue(queue_cre1, Buffer.from(JSON.stringify(result)));
-        channel2.sendToQueue(queue_cre2, Buffer.from(JSON.stringify(result)));
+        try {
+          channel1.sendToQueue(queue_cre1, Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+          console.log(error);
+          channel2.sendToQueue(queue_cre2, Buffer.from(JSON.stringify(result)));
+          return res.json(result);
+        }
+        try {
+          channel2.sendToQueue(queue_cre2, Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+          console.log(error);
+        }
         return res.send(result);
       });
 
@@ -74,22 +94,45 @@ const producer = async () => {
         const producers = await producerRepository.findOneById(req.params.id);
         producerRepository.merge(producers, req.body);
         const result = await producerRepository.save(producers);
-        channel1.sendToQueue(queue_upt1, Buffer.from(JSON.stringify(result)));
-        channel2.sendToQueue(queue_upt2, Buffer.from(JSON.stringify(result)));
-        res.send(result);
+        try {
+          channel1.sendToQueue(queue_upt1, Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+          console.log(error);
+          channel2.sendToQueue(queue_upt2, Buffer.from(JSON.stringify(result)));
+          return res.json(result);
+        }
+        try {
+          channel2.sendToQueue(queue_upt2, Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+          console.log(error);
+        }
+        return res.send(result);
       });
 
       // delete a data from database producers
       app.delete("/api/producers/:id", async (req: Request, res: Response) => {
         const result = await producerRepository.delete(req.params.id);
-        channel1.sendToQueue(
-          queue_del1,
-          Buffer.from(JSON.stringify(req.params.id))
-        );
-        channel2.sendToQueue(
-          queue_del2,
-          Buffer.from(JSON.stringify(req.params.id))
-        );
+        try {
+          channel1.sendToQueue(
+            queue_del1,
+            Buffer.from(JSON.stringify(req.params.id))
+          );
+        } catch (error) {
+          console.log(error);
+          channel2.sendToQueue(
+            queue_del2,
+            Buffer.from(JSON.stringify(req.params.id))
+          );
+          return res.json(result);
+        }
+        try {
+          channel2.sendToQueue(
+            queue_del2,
+            Buffer.from(JSON.stringify(req.params.id))
+          );
+        } catch (error) {
+          console.log(error);
+        }
         return res.send(result);
       });
 

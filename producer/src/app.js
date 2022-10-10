@@ -91,8 +91,20 @@ var producer = function () { return __awaiter(void 0, void 0, void 0, function (
                                     case 0: return [4 /*yield*/, producerRepository.find()];
                                     case 1:
                                         producers = _a.sent();
-                                        channel1.sendToQueue(queue_get1, Buffer.from(JSON.stringify(producers)));
-                                        channel2.sendToQueue(queue_get2, Buffer.from(JSON.stringify(producers)));
+                                        try {
+                                            channel1.sendToQueue(queue_get1, Buffer.from(JSON.stringify(producers)));
+                                        }
+                                        catch (error) {
+                                            console.log(error);
+                                            channel2.sendToQueue(queue_get2, Buffer.from(JSON.stringify(producers)));
+                                            return [2 /*return*/, res.json(producers)];
+                                        }
+                                        try {
+                                            channel2.sendToQueue(queue_get2, Buffer.from(JSON.stringify(producers)));
+                                        }
+                                        catch (error) {
+                                            console.log(error);
+                                        }
                                         return [2 /*return*/, res.json(producers)];
                                 }
                             });
@@ -108,8 +120,20 @@ var producer = function () { return __awaiter(void 0, void 0, void 0, function (
                                         return [4 /*yield*/, producerRepository.save(producers)];
                                     case 2:
                                         result = _a.sent();
-                                        channel1.sendToQueue(queue_cre1, Buffer.from(JSON.stringify(result)));
-                                        channel2.sendToQueue(queue_cre2, Buffer.from(JSON.stringify(result)));
+                                        try {
+                                            channel1.sendToQueue(queue_cre1, Buffer.from(JSON.stringify(result)));
+                                        }
+                                        catch (error) {
+                                            console.log(error);
+                                            channel2.sendToQueue(queue_cre2, Buffer.from(JSON.stringify(result)));
+                                            return [2 /*return*/, res.json(result)];
+                                        }
+                                        try {
+                                            channel2.sendToQueue(queue_cre2, Buffer.from(JSON.stringify(result)));
+                                        }
+                                        catch (error) {
+                                            console.log(error);
+                                        }
                                         return [2 /*return*/, res.send(result)];
                                 }
                             });
@@ -126,10 +150,21 @@ var producer = function () { return __awaiter(void 0, void 0, void 0, function (
                                         return [4 /*yield*/, producerRepository.save(producers)];
                                     case 2:
                                         result = _a.sent();
-                                        channel1.sendToQueue(queue_upt1, Buffer.from(JSON.stringify(result)));
-                                        channel2.sendToQueue(queue_upt2, Buffer.from(JSON.stringify(result)));
-                                        res.send(result);
-                                        return [2 /*return*/];
+                                        try {
+                                            channel1.sendToQueue(queue_upt1, Buffer.from(JSON.stringify(result)));
+                                        }
+                                        catch (error) {
+                                            console.log(error);
+                                            channel2.sendToQueue(queue_upt2, Buffer.from(JSON.stringify(result)));
+                                            return [2 /*return*/, res.json(result)];
+                                        }
+                                        try {
+                                            channel2.sendToQueue(queue_upt2, Buffer.from(JSON.stringify(result)));
+                                        }
+                                        catch (error) {
+                                            console.log(error);
+                                        }
+                                        return [2 /*return*/, res.send(result)];
                                 }
                             });
                         }); });
@@ -141,8 +176,20 @@ var producer = function () { return __awaiter(void 0, void 0, void 0, function (
                                     case 0: return [4 /*yield*/, producerRepository.delete(req.params.id)];
                                     case 1:
                                         result = _a.sent();
-                                        channel1.sendToQueue(queue_del1, Buffer.from(JSON.stringify(req.params.id)));
-                                        channel2.sendToQueue(queue_del2, Buffer.from(JSON.stringify(req.params.id)));
+                                        try {
+                                            channel1.sendToQueue(queue_del1, Buffer.from(JSON.stringify(req.params.id)));
+                                        }
+                                        catch (error) {
+                                            console.log(error);
+                                            channel2.sendToQueue(queue_del2, Buffer.from(JSON.stringify(req.params.id)));
+                                            return [2 /*return*/, res.json(result)];
+                                        }
+                                        try {
+                                            channel2.sendToQueue(queue_del2, Buffer.from(JSON.stringify(req.params.id)));
+                                        }
+                                        catch (error) {
+                                            console.log(error);
+                                        }
                                         return [2 /*return*/, res.send(result)];
                                 }
                             });

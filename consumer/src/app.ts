@@ -43,7 +43,6 @@ try {
         channel.assertQueue("producer_deleted2", { durable: false });
 
         // consumer
-
         channel.consume(
           "producer_got",
           (msg) => {
