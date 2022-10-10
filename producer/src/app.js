@@ -40,254 +40,126 @@ var express = require("express");
 var cors = require("cors");
 var typeorm_1 = require("typeorm");
 var DataConsumer_1 = require("./entity/DataConsumer");
-var amqp = require("amqplib/callback_api");
-// connection
-(0, typeorm_1.createConnection)().then(function (db) {
-    var producerRepository = db.getRepository(DataConsumer_1.DataConsumer);
-    var port = 8000;
-    amqp.connect("amqps://vwiugkgc:0s7MKslaqAl55plx6eF5M35weZyuo103@armadillo.rmq.cloudamqp.com/vwiugkgc", function (errorConnect, connection) {
-        if (errorConnect) {
-            throw errorConnect;
-        }
-        ///// try use channel 1
-        try {
-            ///// start Channel 1
-            connection.createChannel(function (error1, channel) {
-                if (error1) {
-                    throw error1;
-                }
-                var app = express();
-                // listen cors front end 3000:React 8080:Vue 4200:Angular
-                app.use(cors({
-                    origin: [
-                        "http://localhost:3000",
-                        "http://localhost:8080",
-                        "http://localhost:4200",
-                    ],
-                }));
-                app.use(express.json());
-                // get all data from database producers
-                app.get("/api/producers", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var producers;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, producerRepository.find()];
-                            case 1:
-                                producers = _a.sent();
-                                res.json(producers);
-                                return [2 /*return*/];
+var amqp = require("amqplib");
+var producer = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var queue_get1, queue_get2, queue_cre1, queue_upt1, queue_del1, queue_cre2, queue_upt2, queue_del2, connection, channel1, channel2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                queue_get1 = "producer_got";
+                queue_get2 = "producer_got2";
+                queue_cre1 = "producer_created";
+                queue_upt1 = "producer_updated";
+                queue_del1 = "producer_deleted";
+                queue_cre2 = "producer_created2";
+                queue_upt2 = "producer_updated2";
+                queue_del2 = "producer_deleted2";
+                return [4 /*yield*/, amqp.connect("amqps://vwiugkgc:0s7MKslaqAl55plx6eF5M35weZyuo103@armadillo.rmq.cloudamqp.com/vwiugkgc", function (errorConnection, connection) {
+                        if (errorConnection) {
+                            throw errorConnection;
                         }
-                    });
-                }); });
-                // get a data from database producers
-                app.get("/api/producers/:id", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var producers;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, producerRepository.findOneById(req.params.id)];
-                            case 1:
-                                producers = _a.sent();
-                                res.json(producers);
-                                return [2 /*return*/];
-                        }
-                    });
-                }); });
-                // add a data to database producers
-                app.post("/api/producers", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var producers, result;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, producerRepository.create(req.body)];
-                            case 1:
-                                producers = _a.sent();
-                                return [4 /*yield*/, producerRepository.save(producers)];
-                            case 2:
-                                result = _a.sent();
-                                channel.sendToQueue("producer_created", Buffer.from(JSON.stringify(result)));
-                                return [2 /*return*/, res.send(result)];
-                        }
-                    });
-                }); });
-                // update a data to database producers
-                app.put("/api/producers/:id", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var producers, result;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, producerRepository.findOneById(req.params.id)];
-                            case 1:
-                                producers = _a.sent();
-                                producerRepository.merge(producers, req.body);
-                                return [4 /*yield*/, producerRepository.save(producers)];
-                            case 2:
-                                result = _a.sent();
-                                channel.sendToQueue("producer_updated", Buffer.from(JSON.stringify(result)));
-                                return [2 /*return*/, res.send(result)];
-                        }
-                    });
-                }); });
-                // delete a data from database producers
-                app.delete("/api/producers/:id", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var result;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, producerRepository.delete(req.params.id)];
-                            case 1:
-                                result = _a.sent();
-                                channel.sendToQueue("producer_deleted", Buffer.from(JSON.stringify(req.params.id)));
-                                return [2 /*return*/, res.send(result)];
-                        }
-                    });
-                }); });
-                // add a financialamount data to database producers
-                app.post("/api/producers/:id/financialamount", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var producers, _a, result;
-                    return __generator(this, function (_b) {
-                        switch (_b.label) {
-                            case 0: return [4 /*yield*/, producerRepository.findOneById(req.params.id)];
-                            case 1:
-                                producers = _b.sent();
-                                _a = producers;
-                                return [4 /*yield*/, req.body.amount];
-                            case 2:
-                                _a.amount = _b.sent();
-                                return [4 /*yield*/, producerRepository.save(producers)];
-                            case 3:
-                                result = _b.sent();
-                                return [2 /*return*/, res.send(result)];
-                        }
-                    });
-                }); });
-                console.log("listen on port ".concat(port));
-                app.listen(port);
-                process.on("beforeExit", function () {
-                    console.log("closing");
-                    connection.close();
+                        return connection;
+                    })];
+            case 1:
+                connection = _a.sent();
+                return [4 /*yield*/, connection.createChannel()];
+            case 2:
+                channel1 = _a.sent();
+                return [4 /*yield*/, connection.createChannel()];
+            case 3:
+                channel2 = _a.sent();
+                // connect Database
+                (0, typeorm_1.createConnection)().then(function (db) {
+                    var producerRepository = db.getRepository(DataConsumer_1.DataConsumer);
+                    var port = 8000;
+                    var app = express();
+                    // listen cors front end 3000:React 8080:Vue 4200:Angular
+                    app.use(cors({
+                        origin: [
+                            "http://localhost:3000",
+                            "http://localhost:8080",
+                            "http://localhost:4200",
+                        ],
+                    }));
+                    app.use(express.json());
+                    try {
+                        // get all data from database producers
+                        app.get("/api/producers", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+                            var producers;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, producerRepository.find()];
+                                    case 1:
+                                        producers = _a.sent();
+                                        channel1.sendToQueue(queue_get1, Buffer.from(JSON.stringify(producers)));
+                                        channel2.sendToQueue(queue_get2, Buffer.from(JSON.stringify(producers)));
+                                        return [2 /*return*/, res.json(producers)];
+                                }
+                            });
+                        }); });
+                        // add a data to database producers
+                        app.post("/api/producers", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+                            var producers, result;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, producerRepository.create(req.body)];
+                                    case 1:
+                                        producers = _a.sent();
+                                        return [4 /*yield*/, producerRepository.save(producers)];
+                                    case 2:
+                                        result = _a.sent();
+                                        channel1.sendToQueue(queue_cre1, Buffer.from(JSON.stringify(result)));
+                                        channel2.sendToQueue(queue_cre2, Buffer.from(JSON.stringify(result)));
+                                        return [2 /*return*/, res.send(result)];
+                                }
+                            });
+                        }); });
+                        // update a data to database producers
+                        app.put("/api/producers/:id", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+                            var producers, result;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, producerRepository.findOneById(req.params.id)];
+                                    case 1:
+                                        producers = _a.sent();
+                                        producerRepository.merge(producers, req.body);
+                                        return [4 /*yield*/, producerRepository.save(producers)];
+                                    case 2:
+                                        result = _a.sent();
+                                        channel1.sendToQueue(queue_upt1, Buffer.from(JSON.stringify(result)));
+                                        channel2.sendToQueue(queue_upt2, Buffer.from(JSON.stringify(result)));
+                                        res.send(result);
+                                        return [2 /*return*/];
+                                }
+                            });
+                        }); });
+                        // delete a data from database producers
+                        app.delete("/api/producers/:id", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+                            var result;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, producerRepository.delete(req.params.id)];
+                                    case 1:
+                                        result = _a.sent();
+                                        channel1.sendToQueue(queue_del1, Buffer.from(JSON.stringify(req.params.id)));
+                                        channel2.sendToQueue(queue_del2, Buffer.from(JSON.stringify(req.params.id)));
+                                        return [2 /*return*/, res.send(result)];
+                                }
+                            });
+                        }); });
+                        process.on("beforeExit", function () {
+                            console.log("closing");
+                            connection.close();
+                        });
+                        console.log("listen on port ".concat(port));
+                        app.listen(port);
+                    }
+                    catch (error) {
+                        console.log(error);
+                    }
                 });
-            });
-            ///// end Channel 1
-        }
-        catch (error) 
-        ///// channel 1 crashed
-        ///// catch with channel 2 
-        {
-            ///// use Channel 2 if catch
-            ///// log error
-            console.log(error);
-            ///// end log error
-            ///// start Channel 2
-            connection.createChannel(function (error2, channel2) {
-                if (error2) {
-                    throw error2;
-                }
-                var app = express();
-                // listen cors front end 3000:React 8080:Vue 4200:Angular
-                app.use(cors({
-                    origin: [
-                        "http://localhost:3000",
-                        "http://localhost:8080",
-                        "http://localhost:4200",
-                    ],
-                }));
-                app.use(express.json());
-                // get all data from database producers
-                app.get("/api/producers", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var producers;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, producerRepository.find()];
-                            case 1:
-                                producers = _a.sent();
-                                res.json(producers);
-                                return [2 /*return*/];
-                        }
-                    });
-                }); });
-                // get a data from database producers
-                app.get("/api/producers/:id", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var producers;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, producerRepository.findOneById(req.params.id)];
-                            case 1:
-                                producers = _a.sent();
-                                res.json(producers);
-                                return [2 /*return*/];
-                        }
-                    });
-                }); });
-                // add a data to database producers
-                app.post("/api/producers", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var producers, result;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, producerRepository.create(req.body)];
-                            case 1:
-                                producers = _a.sent();
-                                return [4 /*yield*/, producerRepository.save(producers)];
-                            case 2:
-                                result = _a.sent();
-                                channel2.sendToQueue("producer_created", Buffer.from(JSON.stringify(result)));
-                                return [2 /*return*/, res.send(result)];
-                        }
-                    });
-                }); });
-                // update a data to database producers
-                app.put("/api/producers/:id", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var producers, result;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, producerRepository.findOneById(req.params.id)];
-                            case 1:
-                                producers = _a.sent();
-                                producerRepository.merge(producers, req.body);
-                                return [4 /*yield*/, producerRepository.save(producers)];
-                            case 2:
-                                result = _a.sent();
-                                channel2.sendToQueue("producer_updated", Buffer.from(JSON.stringify(result)));
-                                return [2 /*return*/, res.send(result)];
-                        }
-                    });
-                }); });
-                // delete a data from database producers
-                app.delete("/api/producers/:id", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var result;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, producerRepository.delete(req.params.id)];
-                            case 1:
-                                result = _a.sent();
-                                channel2.sendToQueue("producer_deleted", Buffer.from(JSON.stringify(req.params.id)));
-                                return [2 /*return*/, res.send(result)];
-                        }
-                    });
-                }); });
-                // add a financialamount data to database producers
-                app.post("/api/producers/:id/financialamount", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                    var producers, _a, result;
-                    return __generator(this, function (_b) {
-                        switch (_b.label) {
-                            case 0: return [4 /*yield*/, producerRepository.findOneById(req.params.id)];
-                            case 1:
-                                producers = _b.sent();
-                                _a = producers;
-                                return [4 /*yield*/, req.body.amount];
-                            case 2:
-                                _a.amount = _b.sent();
-                                return [4 /*yield*/, producerRepository.save(producers)];
-                            case 3:
-                                result = _b.sent();
-                                return [2 /*return*/, res.send(result)];
-                        }
-                    });
-                }); });
-                console.log("listen on port ".concat(port));
-                app.listen(port);
-                process.on("beforeExit", function () {
-                    console.log("closing");
-                    connection.close();
-                });
-            });
-            ///// end Channel 2
+                return [2 /*return*/];
         }
     });
-});
+}); };
+producer();
